@@ -1,22 +1,47 @@
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import UserDashboard from '@/components/dashboard/UserDashboard';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
 import AnimatedBackground from '@/components/common/AnimatedBackground';
 
-export default function DashboardPage() {
-  return (
-    <div className="min-h-screen overflow-hidden">
-      <AnimatedBackground />
-      <Header />
-      <main className="relative pt-24 pb-20 px-6">
-        <div className="max-w-[1200px] mx-auto">
-          <h1 className="text-4xl font-bold mb-8">Dashboard</h1>
-          <div className="glass-effect p-8 rounded-2xl">
-            <p className="text-gray-300">Dashboard content coming soon...</p>
-          </div>
-        </div>
-      </main>
-      <Footer />
-    </div>
-  );
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
 }
 
+export default function DashboardPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (!userData) {
+      router.push('/login');
+      return;
+    }
+
+    const parsedUser = JSON.parse(userData);
+    setUser(parsedUser);
+    setLoading(false);
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center relative">
+        <AnimatedBackground />
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return user.role === 'admin' ? <AdminDashboard user={user} /> : <UserDashboard user={user} />;
+}
